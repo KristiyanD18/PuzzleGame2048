@@ -1,4 +1,4 @@
-<h2>PuzzleGame2048</h2>
+<h1>PuzzleGame2048</h1>
 
 2048 University Project
 

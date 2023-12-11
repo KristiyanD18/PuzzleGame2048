@@ -16,5 +16,5 @@ Instructions on how to play the game:
   1. Select Start Game;
   2. Enter nickname;
   3. Enter size of the grid between 5 and 10;
-  4. Enter commands (w-up, a-left, s-down, d-right) to combine the numbers
-  5. When ended it is going to show player's score.
+  4. Enter commands (w-up, a-left, s-down, d-right) to combine the numbers;
+  5. When the game is over, the score will appear.

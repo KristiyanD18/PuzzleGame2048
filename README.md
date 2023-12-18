@@ -2,15 +2,26 @@
 
 2048 University Project
 
-* Solution to course project # 4
-* Introduction to programming course
-* Faculty of Mathematics and Informatics of Sofia University
-* Winter semester 2023/2024
-* @author Kristiyan Dimov
-* @idnumber 5MI0600358
-* @compiler VS
+Solution to course project #4
+Introduction to programming course
+Faculty of Mathematics and Informatics of Sofia University
 
-This 2048 Puzzle Game Application is a single-player sliding block puzzle game. It requests nickname and size of the grid from the player. The game's objective is to slide numbers with commands (w-up, a-left, s-down, d-right) on a grid to combine them to create the number 2048. However, one can continue to play the game after reaching the goal. The game has saved highscores with players' nicknames. Added features include beeping on every combination and color change as getting closer to the goal.
+<h2>Student Information</h2>
+* Name: <b>Kristiyan Dimov</b>
+* Faculty Number: <b>5MI0600358</b>
+* Semester: <b>1 (Winter 2023/2024)</b>
+
+<h2>Project Overview</h2>
+This 2048 Puzzle Game Application is a single-player sliding block puzzle game. 
+It requests nickname and size of the grid from the player. 
+The game's objective is to slide numbers with commands (w-up, a-left, s-down, d-right) on a grid to combine them to create the number 2048. 
+However, one can continue to play the game after reaching the goal. 
+The game has saved highscores with players' nicknames. 
+
+<h2>Added Features</h2>
+Added features include:
+* beeping on every combination
+* color change as getting closer to the goal.
 
 Instructions on how to play the game:
   1. Select Start Game;

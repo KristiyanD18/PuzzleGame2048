@@ -7,9 +7,9 @@ Introduction to programming course
 Faculty of Mathematics and Informatics of Sofia University
 
 <h2>Student Information</h2>
-* Name: <b>Kristiyan Dimov</b>
-* Faculty Number: <b>5MI0600358</b>
-* Semester: <b>1 (Winter 2023/2024)</b>
+*Name: <b>Kristiyan Dimov</b>
+*Faculty Number: <b>5MI0600358</b>
+*Semester: <b>1 (Winter 2023/2024)</b>
 
 <h2>Project Overview</h2>
 This 2048 Puzzle Game Application is a single-player sliding block puzzle game. 

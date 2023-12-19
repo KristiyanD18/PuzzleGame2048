@@ -34,7 +34,7 @@
 <ol>
   <li>Select "Start Game";</b></li>
   <li>Enter nickname;</b></li>
-  <li>Enter size of the grid between 5 and 10;</b></li>
+  <li>Enter size of the grid between 4 and 10;</b></li>
   <li>Enter commands (w: "up", a: "left", s: "down", d: "right") to combine the numbers;</li>
   <li>When the game is over, the score will appear.</li>
 </ol>

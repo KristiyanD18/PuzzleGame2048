@@ -14,6 +14,22 @@
 */
 
 #include <iostream>
+using namespace std;
+
+bool isEqual(const char* firstWord, const char* secondWord)
+{
+	if (!firstWord || !secondWord)
+	{
+		return 0; //some error value
+	}
+
+	int index = 0;
+	while (firstWord[index] != '\0' && secondWord[index] != '\0')
+	{
+		if (firstWord[index] != secondWord[index])
+		{
+			return false;
+		}
 
 constexpr int MAX_SIZE_INPUT = 1024;
 

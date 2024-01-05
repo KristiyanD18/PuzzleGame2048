@@ -12,9 +12,9 @@
 * <main code>
 *
 */
-
 #include <iostream>
 #include <windows.h> // for coloring output text
+#include <random>
 using namespace std;
 
 constexpr size_t MAX_SIZE_INPUT = 1024;
@@ -41,40 +41,57 @@ bool isEqual(const char* firstWord, const char* secondWord)
 	return true;
 }
 
-void getNickname(char* nickname)
+bool isNicknameValid(const char* nickname)
 {
-	std::cout << "Enter your Nickname here: ";
-	std::cin.getline(nickname, MAX_SIZE_INPUT);
+	return nickname[0] != '\n';
 }
 
-bool isGridSizeValid(const char* gridSize)
+void getNickname(char* nickname)
 {
-	unsigned size = gridSize[0] - '0';
-	return size >= 4 && size <= 10;
+	std::cout << "Enter nickname here: ";
+	std::cin.getline(nickname, MAX_SIZE_INPUT);
+	while (!isNicknameValid)
+	{
+		std::cout << "Nickname is not valid!\nEnter nickname here: ";
+		std::cin.getline(nickname, MAX_SIZE_INPUT);
+	}
+}
+
+bool isGridSizeValid(int gridSize)
+{
+	return gridSize >= 4 && gridSize <= 10;
 }
 
 int getGridSize()
 {
-	char gridSize[MAX_SIZE_INPUT];
+	int gridSize;
 	std::cout << "Enter grid size between 4 and 10: ";
-	std::cin.getline(gridSize, MAX_SIZE_INPUT);
+	std::cin >> gridSize;
 
 	while (!isGridSizeValid(gridSize))
 	{
-		std::cout << "Entered grid size is not valid! Enter grid size between 4 and 10: ";
+		std::cout << std::endl << "Entered grid size is not valid! Enter grid size between 4 and 10: ";
 		std::cin >> gridSize;
 	}
-	return gridSize[0] - '0';
+	return gridSize;
 }
 
-void printGrid(int** grid, size_t size)
+void printGrid(const int** grid, size_t size)
 {
 	system("cls");
 	for (int row = 0; row < size; row++)
 	{
+		std::cout << "\t\t\t\t\t|";
 		for (int col = 0; col < size; col++)
 		{
-			std::cout << grid[row][col] << " ";
+			if (grid[row][col] != 0)
+			{
+				std::cout << grid[row][col] << "\t|";
+			}
+			else
+			{
+				std::cout << "\t|";
+			}
 		}
 		std::cout << std::endl;
 	}
@@ -94,7 +111,7 @@ int** createGrid(size_t size)
 
 void deleteGrid(int** grid, int size)
 {
-	for (int i = 0; i < size; i++) 
+	for (int i = 0; i < size; i++)
 	{
 		delete[] grid[i];
 	}
@@ -108,20 +125,24 @@ void getCommand(char* command)
 	std::cin.getline(command, MAX_SIZE_INPUT);
 }
 
-void swap(int& a, int& b)
+void generaterRandomTwoAtEmptyPosition(int** grid, size_t size)
 {
-	int temp = a;
-	a = b;
-	b = temp;
-}
+	std::random_device rd;
+	std::mt19937 gen(rd());
+	std::uniform_int_distribution<int> rowDist(0, size - 1);
+	std::uniform_int_distribution<int> colDist(0, size - 1);
 
-int randomTwoOrFour()
-{
-	if ((randomIndex++) % 3 == 0)
-	{
-		return 2;
+	int count = 0;
+	while (count < 2) {
+		int row = rowDist(gen);
+		int col = colDist(gen);
+
+		if (grid[row][col] == 0) {
+			grid[row][col] = 2; // Setting 2 at the empty position
+			count++;
+			break;
+		}
 	}
-	return 4;
 }
 
 void startGame()
@@ -136,57 +157,51 @@ void startGame()
 	// create grid by given size
 	int** grid = createGrid(gridSize);
 
-	// print the grid
-
-
-	// move logic here:
-	// create random 2 or 4 at empty position
-	// function
-
 	// get command wasd
-	char command[MAX_SIZE_INPUT];
-
 	while (true)
 	{
-		// here make a cell 2
-		//int randomCol = random();
-		bool stop = false;
-		for (int row = 0; row < gridSize && !stop; row++)
-		{
-			for (int col = 0; col < gridSize && !stop; col++)
-			{
-				if (grid[row][col] == 0)
-				{
-					grid[row][col] = 2;
-					stop = true;
-				}
-			}
-		}
+		// generate 2 at empty position
+		generaterRandomTwoAtEmptyPosition(grid, gridSize);
 
 		// print grid with the new 2
 		printGrid(grid, gridSize);
 
 		// take command from user
+		char command[MAX_SIZE_INPUT];
 		getCommand(command);
 
 		// move with wasd
 		if (isEqual(command, "d"))
 		{
-			for (int row = 0; row < gridSize; row++) 
-			{
-				for (int col = 0; col < gridSize - 1; col++)
-				{
-					if (grid[row][col] != 0)
-					{
-						if (grid[row][col + 1] == 0)
-						{
-							swap(grid[row][col + 1], grid[row][col]);
-						}
-						else if (grid[row][col + 1] == grid[row][col])
-						{
-							grid[row][col + 1] += grid[row][col];
-							grid[row][col] = 0;
-						}
+			for (int i = 0; i < gridSize; ++i) {
+				int mergeIndex = gridSize - 1; // Index for merging tiles
+
+				// Start from the right and move towards the left
+				for (int j = gridSize - 1; j >= 0; --j) {
+					if (grid[i][j] != 0) {
+						int currentVal = grid[i][j];
+						grid[i][j] = 0;
+						grid[i][mergeIndex] = currentVal;
+						mergeIndex--;
+					}
+				}
+
+				// Merge tiles with the same value
+				for (int j = gridSize - 1; j > 0; --j) {
+					if (grid[i][j] == grid[i][j - 1]) {
+						grid[i][j] *= 2;
+						grid[i][j - 1] = 0;
+					}
+				}
+
+				// Shift merged tiles to the right
+				mergeIndex = gridSize - 1;
+				for (int j = gridSize - 1; j >= 0; --j) {
+					if (grid[i][j] != 0) {
+						int currentVal = grid[i][j];
+						grid[i][j] = 0;
+						grid[i][mergeIndex] = currentVal;
+						mergeIndex--;
 					}
 				}
 			}
@@ -194,21 +209,35 @@ void startGame()
 
 		if (isEqual(command, "a"))
 		{
-			for (int row = 0; row < gridSize; row++)
-			{
-				for (int col = gridSize - 1; col > 0; col--)
-				{
-					if (grid[row][col] != 0)
-					{
-						if (grid[row][col - 1] == 0)
-						{
-							swap(grid[row][col - 1], grid[row][col]);
-						}
-						else if (grid[row][col - 1] == grid[row][col])
-						{
-							grid[row][col - 1] += grid[row][col];
-							grid[row][col] = 0;
-						}
+			for (int i = 0; i < gridSize; ++i) {
+				int mergeIndex = 0; // Index for merging tiles
+
+				// Start from the left and move towards the right
+				for (int j = 0; j < gridSize; ++j) {
+					if (grid[i][j] != 0) {
+						int currentVal = grid[i][j];
+						grid[i][j] = 0;
+						grid[i][mergeIndex] = currentVal;
+						mergeIndex++;
+					}
+				}
+
+				// Merge tiles with the same value
+				for (int j = 0; j < gridSize - 1; ++j) {
+					if (grid[i][j] == grid[i][j + 1]) {
+						grid[i][j] *= 2;
+						grid[i][j + 1] = 0;
+					}
+				}
+
+				// Shift merged tiles to the left
+				mergeIndex = 0;
+				for (int j = 0; j < gridSize; ++j) {
+					if (grid[i][j] != 0) {
+						int currentVal = grid[i][j];
+						grid[i][j] = 0;
+						grid[i][mergeIndex] = currentVal;
+						mergeIndex++;
 					}
 				}
 			}
@@ -216,21 +245,35 @@ void startGame()
 
 		if (isEqual(command, "s"))
 		{
-			for (int row = 0; row < gridSize - 1; row++)
-			{
-				for (int col = 0; col < gridSize; col++)
-				{
-					if (grid[row][col] != 0)
-					{
-						if (grid[row + 1][col] == 0)
-						{
-							swap(grid[row + 1][col], grid[row][col]);
-						}
-						else if (grid[row + 1][col] == grid[row][col])
-						{
-							grid[row + 1][col] += grid[row][col];
-							grid[row][col] = 0;
-						}
+			for (int j = 0; j < gridSize; ++j) {
+				int mergeIndex = gridSize - 1; // Index for merging tiles
+
+				// Start from the bottom and move upwards
+				for (int i = gridSize - 1; i >= 0; --i) {
+					if (grid[i][j] != 0) {
+						int currentVal = grid[i][j];
+						grid[i][j] = 0;
+						grid[mergeIndex][j] = currentVal;
+						mergeIndex--;
+					}
+				}
+
+				// Merge tiles with the same value
+				for (int i = gridSize - 1; i > 0; --i) {
+					if (grid[i][j] == grid[i - 1][j]) {
+						grid[i][j] *= 2;
+						grid[i - 1][j] = 0;
+					}
+				}
+
+				// Shift merged tiles to the bottom
+				mergeIndex = gridSize - 1;
+				for (int i = gridSize - 1; i >= 0; --i) {
+					if (grid[i][j] != 0) {
+						int currentVal = grid[i][j];
+						grid[i][j] = 0;
+						grid[mergeIndex][j] = currentVal;
+						mergeIndex--;
 					}
 				}
 			}
@@ -238,21 +281,35 @@ void startGame()
 
 		if (isEqual(command, "w"))
 		{
-			for (int row = gridSize - 1; row > 0 ; row--)
-			{
-				for (int col = 0; col < gridSize; col++)
-				{
-					if (grid[row][col] != 0)
-					{
-						if (grid[row - 1][col] == 0)
-						{
-							swap(grid[row - 1][col], grid[row][col]);
-						}
-						else if (grid[row - 1][col] == grid[row][col])
-						{
-							grid[row - 1][col] += grid[row][col];
-							grid[row][col] = 0;
-						}
+			for (int j = 0; j < gridSize; ++j) {
+				int mergeIndex = 0; // Index for merging tiles
+
+				// Start from the top and move downwards
+				for (int i = 0; i < gridSize; ++i) {
+					if (grid[i][j] != 0) {
+						int currentVal = grid[i][j];
+						grid[i][j] = 0;
+						grid[mergeIndex][j] = currentVal;
+						mergeIndex++;
+					}
+				}
+
+				// Merge tiles with the same value
+				for (int i = 0; i < gridSize - 1; ++i) {
+					if (grid[i][j] == grid[i + 1][j]) {
+						grid[i][j] *= 2;
+						grid[i + 1][j] = 0;
+					}
+				}
+
+				// Shift merged tiles to the top
+				mergeIndex = 0;
+				for (int i = 0; i < gridSize; ++i) {
+					if (grid[i][j] != 0) {
+						int currentVal = grid[i][j];
+						grid[i][j] = 0;
+						grid[mergeIndex][j] = currentVal;
+						mergeIndex++;
 					}
 				}
 			}

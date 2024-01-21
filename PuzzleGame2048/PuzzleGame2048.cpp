@@ -1,6 +1,6 @@
 /**
 *
-* Solution to course project # 4
+* Solution to course project #4
 * Introduction to programming course
 * Faculty of Mathematics and Informatics of Sofia University
 * Winter semester 2023/2024
@@ -16,30 +16,20 @@
 #include <windows.h> // for coloring output text
 #include <random> // for creating random
 #include <conio.h> // for non-blocking input in Windows
-#include <fstream>
-using namespace std;
+#include <fstream> // for file handling functions
 
-constexpr size_t MAX_SIZE_INPUT = 1024;
-
-bool isEqual(const char* firstWord, const char* secondWord)
+bool myStrCmp(const char* firstString, const char* secondString) // comapare strings
 {
-	if (!firstWord || !secondWord)
-	{
+	if (!firstString || !secondString) // check for nullptr
 		return 0; //some error value
-	}
 
-	int index = 0;
-	while (firstWord[index] != '\0' && secondWord[index] != '\0')
+	while ((*firstString) && (*secondString) && ((*firstString) == (*secondString)))
 	{
-		if (firstWord[index] != secondWord[index])
-		{
-			return false;
-		}
-
-		index++;
+		firstString++;
+		secondString++;
 	}
 
-	return true;
+	return !(*firstString - *secondString); // true if equals 0 and false if equals 1
 }
 
 bool isNicknameValid(const char* nickname)
@@ -49,9 +39,11 @@ bool isNicknameValid(const char* nickname)
 
 char* getNickname()
 {
+	constexpr size_t MAX_SIZE_INPUT = 1024;
 	char nickname[MAX_SIZE_INPUT];
 	std::cout << "Enter your nickname here: ";
 	std::cin.getline(nickname, MAX_SIZE_INPUT);
+
 	while (!isNicknameValid(nickname))
 	{
 		std::cout << "Nickname is not valid!\nEnter your nickname here: ";
@@ -67,8 +59,8 @@ bool isGridSizeValid(int gridSize)
 
 int getGridSize()
 {
-	int gridSize;
 	std::cout << "Enter grid size between 4 and 10: ";
+	int gridSize;
 	std::cin >> gridSize;
 
 	while (!isGridSizeValid(gridSize))
@@ -79,9 +71,11 @@ int getGridSize()
 	return gridSize;
 }
 
-void printGrid(int** grid, size_t size)
+void printGrid(int** grid, size_t size, int newTwoRow, int newTwoCol)
 {
-	system("cls");
+	system("cls"); // clean console text
+	HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE); // for coloring the new 2
+
 	for (int row = 0; row < size; row++)
 	{
 		std::cout << "|";
@@ -89,7 +83,14 @@ void printGrid(int** grid, size_t size)
 		{
 			if (grid[row][col] == 0)
 			{
-				std::cout << "\t|";
+				std::cout << "\t|"; // if cell is 0, print tab instead of 0
+			}
+			else if (row == newTwoRow && col == newTwoCol)
+			{
+				SetConsoleTextAttribute(hConsole, 13); // 13 is for purple color
+				std::cout << grid[row][col] << "\t";
+				SetConsoleTextAttribute(hConsole, 15); // 15 is for white color
+				std::cout << "|";
 			}
 			else
 			{
@@ -99,7 +100,6 @@ void printGrid(int** grid, size_t size)
 		std::cout << std::endl;
 	}
 }
-
 
 int** createGrid(size_t size)
 {
@@ -130,7 +130,7 @@ bool isCommandValid(char command)
 char getCommand()
 {
 	std::cout << "\nEnter command (wasd): ";
-	char command = _getch();
+	char command = _getch(); // read a character input from the keyboard
 
 	if (!isCommandValid(command))
 	{
@@ -139,25 +139,43 @@ char getCommand()
 	return command;
 }
 
-void generaterRandomTwoAtEmptyPosition(int** grid, size_t size)
+void generateRandomTwoAtEmptyPosition(int** grid, size_t size, int& newTwoRow, int& newTwoCol)
 {
 	std::random_device rd;
 	std::mt19937 gen(rd());
-	std::uniform_int_distribution<int> rowDist(0, size - 1);
-	std::uniform_int_distribution<int> colDist(0, size - 1);
+	std::uniform_int_distribution<int> rowDist(0, size - 1); // random row number from 0 to size - 1
+	std::uniform_int_distribution<int> colDist(0, size - 1); // random col number from 0 to size - 1 
 
 	int count = 0;
-	while (count < 2)
+	while (true)
 	{
 		int row = rowDist(gen);
 		int col = colDist(gen);
 
-		if (grid[row][col] == 0) {
-			grid[row][col] = 2; // Setting 2 at the empty position
-			count++;
+		if (grid[row][col] == 0)
+		{
+			grid[row][col] = 2; // sets 2 at the empty position
+			newTwoRow = row;
+			newTwoCol = col;
 			break;
 		}
 	}
+}
+
+bool hasEmptySpace(int** matrix, int size)
+{
+	for (int i = 0; i < size; i++)
+	{
+		for (int j = 0; j < size; j++)
+		{
+			if (matrix[i][j] == 0)
+			{
+				return true;
+			}
+		}
+	}
+
+	return false;
 }
 
 void moveUp(int** grid, int gridSize)
@@ -320,13 +338,14 @@ bool isMoved(int** grid, bool** isMovedGrid, int size)
 	return false;
 }
 
-bool isEndGame(int** grid, size_t gridSize)
+bool isMovePossible(int** grid, size_t gridSize)
 {
-	for (int i = 0; i < gridSize - 1; i++)
+	for (int i = 0; i < gridSize; i++)
 	{
-		for (int j = 0; j < gridSize - 1; j++)
+		for (int j = 0; j < gridSize; j++)
 		{
-			if (grid[i][j] == 0 || grid[i][j + 1] == 0 || grid[i + 1][j] == 0 || grid[i][j] == grid[i][j + 1] || grid[i][j] == grid[i + 1][j])
+			if (grid[i][j] == 0 || (j + 1 < gridSize && grid[i][j] == grid[i][j + 1]) ||
+				(i + 1 < gridSize && grid[i][j] == grid[i + 1][j])) // checks if there are empty spaces or same neighbours
 			{
 				return true;
 			}
@@ -340,94 +359,263 @@ void printScore(int score)
 	std::cout << "\nYour score is: " << score;
 }
 
-void startGame()
+char* getFileName(size_t dimension)
 {
-	// get nickname
-	char* nickname = getNickname();
+	constexpr size_t LENGTH_PATH = 7;
+	char* fileName = new char[LENGTH_PATH];
+	size_t i = 0;
 
-	// get size of grid
-	size_t gridSize = getGridSize();
-
-	// create grid by given size
-	int** grid = createGrid(gridSize);
-
-	// generate 2 at random empty position
-	generaterRandomTwoAtEmptyPosition(grid, gridSize);
-
-	// score is added as new 2 is generated
-	int score = 2;
-
-	while (isEndGame(grid, gridSize))
+	if (dimension < 10)
 	{
-		// print grid with the generated 2
-		printGrid(grid, gridSize);
-
-		printScore(score);
-
-		// take command wasd from user
-		char command = getCommand();
-
-		bool isMoved = true;
-		// move by given command
-		switch (command)
-		{
-		case 'w':
-			moveUp(grid, gridSize);  break;
-		case 'a':
-			moveLeft(grid, gridSize); break;
-		case 's':
-			moveDown(grid, gridSize); break;
-		case 'd':
-			moveRight(grid, gridSize); break;
-		}
-
-		if (isMoved)
-		{
-			// generate 2 at random empty position
-			generaterRandomTwoAtEmptyPosition(grid, gridSize);
-			score += 2;
-		}
-		
+		fileName[i++] = dimension + '0';
+	}
+	else
+	{
+		fileName[i++] = '1';
+		fileName[i++] = '0';
 	}
 
-	// delete grid
-	deleteGrid(grid, gridSize);
+	fileName[i++] = '.';
+	fileName[i++] = 't';
+	fileName[i++] = 'x';
+	fileName[i++] = 't';
+	fileName[i++] = '\0';
 
-	// print score
-	
+	return fileName;
+}
 
+int parseCharToInt(const char* input)
+{
+	size_t iter = 0;
+	size_t result = 0;
+	while (input[iter] != '\0')
+	{
+		if (input[iter] < '0' || input[iter]>'9')
+		{
+			return -1;
+		}
+
+		result = result * 10 + input[iter] - '0';
+		iter++;
+	}
+
+	return result;
+}
+
+void myStrcpy(const char* source, char* dest)
+{
+	if (!source || !dest)
+		return;
+	while (*source)
+	{
+		*dest = *source;
+		dest++;
+		source++;
+	}
+	*dest = '\0';
+}
+
+void updateLeaderboard(int dimension, char* name, int score)
+{
+	char* fileName = getFileName(dimension);
+	std::ifstream leaderboardFile(fileName);
+
+	constexpr size_t MAX_PLAYERS_LEADERBOARD = 5;
+	constexpr size_t BUFFER_SIZE = 1024;
+
+	char names[MAX_PLAYERS_LEADERBOARD][BUFFER_SIZE]{ 0 };
+	int scores[MAX_PLAYERS_LEADERBOARD]{ 0 };
+	char buffer[BUFFER_SIZE];
+
+	for (int i = 0; i < 5; i++)
+	{
+		leaderboardFile.getline(buffer, BUFFER_SIZE);
+
+		scores[i] = parseCharToInt(buffer);
+		leaderboardFile.getline(names[i], BUFFER_SIZE);
+
+		if (score > scores[i])
+		{
+			scores[i] = score;
+
+			myStrcpy(name, names[i]);
+			scores[i] = score;
+
+			break;
+		}
+	}
+	leaderboardFile.close();
+
+	std::ofstream leaderboardFileOut(fileName);
+
+	int i = 0;
+	while (names)
+	{
+		leaderboardFileOut << scores[i] << std::endl;
+		leaderboardFileOut << names[i] << std::endl;
+		i++;
+	}
+
+	leaderboardFileOut.close();
+
+	delete[] fileName;
+}
+
+void startGame()
+{
+	char* nickname = getNickname(); // get nickname
+
+	size_t gridSize = getGridSize(); // get size of grid
+
+	int** grid = createGrid(gridSize); // create grid by given size
+
+	int newTwoRow, newTwoCol;
+	generateRandomTwoAtEmptyPosition(grid, gridSize, newTwoRow, newTwoCol); // generate 2 at random empty position in grid
+
+	int score = 2; // score is added as new 2 is generated
+
+	printGrid(grid, gridSize, newTwoRow, newTwoCol); // print grid with the generated 2
+
+	printScore(score); // print score
+
+	while (isMovePossible(grid, gridSize))
+	{
+		char command = getCommand(); // take command wasd from user
+
+		switch (command) // move by given command
+		{
+			//case 0: isMoved = false;
+		case 'w': moveUp(grid, gridSize);  break;
+		case 'a': moveLeft(grid, gridSize); break;
+		case 's': moveDown(grid, gridSize); break;
+		case 'd': moveRight(grid, gridSize); break;
+		}
+
+		if (hasEmptySpace(grid, gridSize))
+		{
+			generateRandomTwoAtEmptyPosition(grid, gridSize, newTwoRow, newTwoCol); // generate 2 at random empty position
+			score += 2;
+		}
+
+		printGrid(grid, gridSize, newTwoRow, newTwoCol); // print grid with the generated 2
+
+		printScore(score); // print score
+	}
+
+	updateLeaderboard(gridSize, nickname, score);
+	deleteGrid(grid, gridSize); // delete grid
+}
+
+char* inputStr()
+{
+	constexpr size_t BUFFER_SIZE = 1024;
+	char* input = new char[BUFFER_SIZE];
+	std::cin.getline(input, BUFFER_SIZE);
+	return input;
+}
+
+int parseNum(const char* input)
+{
+	size_t iter = 0;
+	size_t result = 0;
+	while (input[iter] != '\0')
+	{
+		if (input[iter] < '0' || input[iter]>'9')
+		{
+			return -1;
+		}
+
+		result = result * 10 + input[iter] - '0';
+		iter++;
+	}
+
+	return result;
+}
+
+int inputNum()
+{
+	char* input = inputStr();
+	int result = parseNum(input);
+	delete[] input;
+	return result;
+}
+
+void leaderboard()
+{
+	std::cout << "Enter dimension you want to see leaderboard in: ";
+
+	int dimension = inputNum();
+	while (dimension < 4 || dimension > 10)
+	{
+		void clearScreen();
+		std::cout << "Invalid dimension! Should be a number between 4  and 10.\n"
+			<< "Enter new: ";
+		dimension = inputNum();
+	}
+
+	size_t count = 0;
+	char* fileName = getFileName(dimension);
+	std::ifstream leaderboardFile(fileName);
+
+	constexpr size_t BUFFER_SIZE = 1024;
+
+	char name[BUFFER_SIZE];
+	size_t score;
+	char buffer[BUFFER_SIZE];
+	int i = 5;
+
+	for (size_t i = 1; i <= 5; i++)
+	{
+		leaderboardFile.getline(buffer, BUFFER_SIZE);
+		if (buffer == "")
+		{
+			break;
+		}
+
+		score = parseNum(buffer);
+		leaderboardFile.getline(name, BUFFER_SIZE);
+		std::cout << (i) << ". " << score << " " << name << std::endl;
+	}
+
+	leaderboardFile.close();
+	std::cout << "---------" << std::endl;
+
+	delete[] fileName;
 }
 
 void showMenu()
 {
-	std::cout << "Menu:\n1. Start game \n2. Leaderboard \n3. Quit" << "\n\n";
+	std::cout << "Menu:\n1. Start game \n2. Leaderboard \n3. Quit" << "\n";
 }
 
 void runGame()
 {
+	constexpr size_t MAX_SIZE_INPUT = 1024;
 	char inputCommand[MAX_SIZE_INPUT];
 	showMenu();
 
 	while (true)
 	{
-		std::cout << "Enter your selection here: ";
+		std::cout << "\nChoose from the menu here: ";
 		std::cin.getline(inputCommand, MAX_SIZE_INPUT);
 
-		if (isEqual(inputCommand, "Start game"))
+		if (myStrCmp(inputCommand, "Start game"))
 		{
 			startGame();
 		}
-		else if (isEqual(inputCommand, "Leaderboard"))
+		else if (myStrCmp(inputCommand, "Leaderboard"))
 		{
-			// functions when given leaderboard
-
-			std::cout << "leaderboard";
+			leaderboard();
 		}
-		else if (isEqual(inputCommand, "Quit"))
+		else if (myStrCmp(inputCommand, "Quit"))
 		{
+			std::cout << "Exited game successfully!" << std::endl;
 			return;
 		}
-		std::cout << "\nMenu:\n1. Start game \n2. Leaderboard \n3. Quit" << "\n\n";
+		else
+		{
+			std::cout << "Entered selection is not valid!" << std::endl;
+		}
 	}
 }
 

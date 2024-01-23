@@ -23,8 +23,9 @@
 <p>Added features include:</p>
 
 <ul>
-  <li><b>beeping on every combination;</b></li>
-  <li><b>color change as getting closer to the goal.</b></li>
+ <li><b>coloring the newest number;</b></li>
+  <li><b>automated input, no need of pressing enter after each command.</b></li>
+  
 </ul>
 
 <h2>Instructions</h2>
